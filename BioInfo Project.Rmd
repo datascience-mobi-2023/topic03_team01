@@ -1,0 +1,60 @@
+---
+title: "non-synchronized HeLa cells"
+output: pdf_document
+date: "2023-04-24"
+---
+
+```{r}
+MS_Table <- read.table("~/Downloads/RDeeP_HeLa_NS.csv", header=TRUE, row.names=1, sep = ";")
+```
+
+```{r}
+head(rownames(MS_Table),12)
+
+rownames(MS_Table[2, ])
+
+View(MS_Table)
+```
+
+```{r}
+dim(MS_Table)
+```
+
+
+```{r}
+ctrl = MS_Table[seq(1, ncol(MS_Table), by = 2)] #Nur Control Replicates 
+rnase = MS_Table[seq(2, ncol(MS_Table), by = 2)] #Nur RNase Replicates 
+
+#weiteres Auftrennen um es leichter zu haben Zeilen zu finden 
+ctrl1 = ctrl[seq(1, ncol(ctrl), by = 3)]
+ctrl2 = ctrl[seq(2, ncol(ctrl), by = 3)]
+ctrl3 = ctrl[seq(3, ncol(ctrl), by = 3)]
+
+rnase1 = rnase[seq(1, ncol(ctrl), by = 3)]
+rnase2 = rnase[seq(2, ncol(ctrl), by = 3)]
+rnase3 = rnase[seq(3, ncol(ctrl), by = 3)]
+
+```
+
+```{r}
+# Null Zeilen finden 
+# which und apply geht durch alle zeile durch un rechnet die summen zusammen, um die zeilen zu finden dessen summe 0 ist 
+remove_ctrl1 = which(apply(ctrl1, 1, sum) == 0)
+remove_ctrl2 = which(apply(ctrl2, 1, sum) == 0)
+remove_ctrl3 = which(apply(ctrl3, 1, sum) == 0)
+
+remove_rnase1 = which(apply(rnase1, 1, sum) == 0)
+remove_rnase2 = which(apply(rnase2, 1, sum) == 0)
+remove_rnase3 = which(apply(rnase3, 1, sum) == 0)
+
+#Null Zeilen entfernen
+# einen vektor mit alles gefundenen Nullstellen füllen, um dann diese alle aus dem Dataframe auf einmal zu entfernen 
+zeros_ctrl = c(remove_ctrl1, remove_ctrl2, remove_ctrl3, remove_rnase1, remove_rnase2, remove_rnase3) #Vektor, der mit allen gefundenen Nullen gefüllt ist  
+ctrl_zeros = ctrl[-zeros_ctrl,] #neue Control data frame mit entfernten Nullen 
+
+zeros_rnase = c(remove_ctrl1, remove_ctrl2, remove_ctrl3, remove_rnase1, remove_rnase2, remove_rnase3)
+rnase_zeros = rnase[-zeros_rnase,]
+
+```
+
+
