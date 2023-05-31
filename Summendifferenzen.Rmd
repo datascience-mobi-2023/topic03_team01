@@ -1,0 +1,218 @@
+---
+title: "Untitled"
+output: html_document
+date: "2023-05-09"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
+
+
+
+```{r}
+MS_Table <- read.table("~/Downloads/RDeeP_HeLa_NS.csv", header=TRUE, row.names=1, sep = ";")
+MS_Table
+```
+
+```{r}
+summary(MS_Table)
+sum(is.na(MS_Table)) #herausfinden ob NAs drinnen sind, Antwort ist nein, da die Summe 0 ist
+```
+
+
+```{r}
+# VON SOPHIA
+
+ctrl = MS_Table[seq(1, ncol(MS_Table), by = 2)] #Nur Control Replicates
+rnase = MS_Table[seq(2, ncol(MS_Table), by = 2)] #Nur RNase Replicates
+
+#weiteres Auftrennen um es leichter zu haben, Zeilen zu finden
+ctrl1 = ctrl[seq(1, ncol(ctrl), by = 3)]
+ctrl2 = ctrl[seq(2, ncol(ctrl), by = 3)]
+ctrl3 = ctrl[seq(3, ncol(ctrl), by = 3)]
+
+rnase1 = rnase[seq(1, ncol(ctrl), by = 3)]
+rnase2 = rnase[seq(2, ncol(ctrl), by = 3)]
+rnase3 = rnase[seq(3, ncol(ctrl), by = 3)]
+```
+
+
+```{r}
+# VON SOPHIA
+
+#  Null Zeilen finden
+
+remove_ctrl1 = which(apply(ctrl1, 1, sum) == 0)
+remove_ctrl2 = which(apply(ctrl2, 1, sum) == 0)
+remove_ctrl3 = which(apply(ctrl3, 1, sum) == 0)
+
+remove_rnase1 = which(apply(rnase1, 1, sum) == 0)
+remove_rnase2 = which(apply(rnase2, 1, sum) == 0)
+remove_rnase3 = which(apply(rnase3, 1, sum) == 0)
+
+# Null Zeilen entfernen
+
+zeros_ctrl = c(remove_ctrl1, remove_ctrl2, remove_ctrl3, remove_rnase1, remove_rnase2, remove_rnase3) #Vektor, der mit allen gefundenen Nullen gefüllt ist
+ctrl_zeros = ctrl[-zeros_ctrl,] #neue Control data frame mit entfernten Nullen
+
+zeros_rnase = c(remove_ctrl1, remove_ctrl2, remove_ctrl3, remove_rnase1, remove_rnase2, remove_rnase3)
+rnase_zeros = rnase[-zeros_rnase]
+```
+
+```{r}
+rnase_zeros
+```
+```{r}
+apply(MS_Table, 2, function(x){sum(x)}) # Summe aller spalten des Datensets, ist eignetlich schlussendlich auch irrelevant gewesen
+```
+
+```{r}
+Sum_control = apply(ctrl_zeros, 2, function(x){sum(x)})
+Sum_control # Summe aller Zeilen
+Sum_Fraction1c = sum(Sum_control[1:3])
+Sum_Fraction2c = sum(Sum_control[4:6])
+Sum_Fraction3c = sum(Sum_control[7:9])
+Sum_Fraction4c = sum(Sum_control[10:12])
+Sum_Fraction5c = sum(Sum_control[13:15])
+Sum_Fraction6c = sum(Sum_control[16:18])
+Sum_Fraction7c = sum(Sum_control[19:21])
+Sum_Fraction8c = sum(Sum_control[22:24])
+Sum_Fraction9c = sum(Sum_control[25:27])
+Sum_Fraction10c = sum(Sum_control[28:30])
+Sum_Fraction11c = sum(Sum_control[31:33])
+Sum_Fraction12c = sum(Sum_control[34:36])
+Sum_Fraction13c = sum(Sum_control[37:39])
+Sum_Fraction14c = sum(Sum_control[40:42])
+Sum_Fraction15c = sum(Sum_control[43:45])
+Sum_Fraction16c = sum(Sum_control[46:48])
+Sum_Fraction17c = sum(Sum_control[49:51])
+Sum_Fraction18c = sum(Sum_control[52:54])
+Sum_Fraction19c = sum(Sum_control[55:57])
+Sum_Fraction20c = sum(Sum_control[58:60])
+Sum_Fraction21c = sum(Sum_control[61:63])
+Sum_Fraction22c = sum(Sum_control[64:66])
+Sum_Fraction23c = sum(Sum_control[67:69])
+Sum_Fraction24c = sum(Sum_control[70:72])
+Sum_Fraction25c = sum(Sum_control[73:75])
+# Summe für jede einzelne Fraktion Control
+
+#Vektor mit allen Summen von Control
+Sum_c = c(Sum_Fraction1c,Sum_Fraction2c, Sum_Fraction3c, Sum_Fraction4c,Sum_Fraction5c, Sum_Fraction6c, Sum_Fraction7c, Sum_Fraction8c, Sum_Fraction9c, Sum_Fraction10c, Sum_Fraction11c, Sum_Fraction12c, Sum_Fraction13c, Sum_Fraction14c, Sum_Fraction15c, Sum_Fraction16c, Sum_Fraction17c, Sum_Fraction18c, Sum_Fraction19c, Sum_Fraction20c, Sum_Fraction21c, Sum_Fraction22c, Sum_Fraction23c, Sum_Fraction24c, Sum_Fraction25c )
+
+dataframe_control_sum = c(Sum_control[4:6]) #einzelne Fraktionen raussuchen, z.B. Fraktion ist 1:3, Fraktion ist 4:6 etc, wird hier grad nicht gebraucht, war nur für mich zur Kontrolle, um einzelne Werte nachzuprüfen ob es funktioniert hat
+
+```
+
+```{r}
+Sum_rnase = apply(rnase_zeros, 2, function(x){sum(x)})
+Sum_rnase # Summe aller Zeilen
+Sum_Fraction1r = sum(Sum_rnase[1:3])
+Sum_Fraction2r = sum(Sum_rnase[4:6])
+Sum_Fraction3r = sum(Sum_rnase[7:9])
+Sum_Fraction4r = sum(Sum_rnase[10:12])
+Sum_Fraction5r = sum(Sum_rnase[13:15])
+Sum_Fraction6r = sum(Sum_rnase[16:18])
+Sum_Fraction7r = sum(Sum_rnase[19:21])
+Sum_Fraction8r = sum(Sum_rnase[22:24])
+Sum_Fraction9r = sum(Sum_rnase[25:27])
+Sum_Fraction10r = sum(Sum_rnase[28:30])
+Sum_Fraction11r = sum(Sum_rnase[31:33])
+Sum_Fraction12r = sum(Sum_rnase[34:36])
+Sum_Fraction13r = sum(Sum_rnase[37:39])
+Sum_Fraction14r = sum(Sum_rnase[40:42])
+Sum_Fraction15r = sum(Sum_rnase[43:45])
+Sum_Fraction16r = sum(Sum_rnase[46:48])
+Sum_Fraction17r = sum(Sum_rnase[49:51])
+Sum_Fraction18r = sum(Sum_rnase[52:54])
+Sum_Fraction19r = sum(Sum_rnase[55:57])
+Sum_Fraction20r = sum(Sum_rnase[58:60])
+Sum_Fraction21r = sum(Sum_rnase[61:63])
+Sum_Fraction22r = sum(Sum_rnase[64:66])
+Sum_Fraction23r = sum(Sum_rnase[67:69])
+Sum_Fraction24r = sum(Sum_rnase[70:72])
+Sum_Fraction25r = sum(Sum_rnase[73:75])
+#Summe aller Fraktionen RNase
+
+#Vektor mit allen Summen:
+Sum_r = c(Sum_Fraction1r,Sum_Fraction2r, Sum_Fraction3r, Sum_Fraction4r,Sum_Fraction5r, Sum_Fraction6r, Sum_Fraction7r, Sum_Fraction8r, Sum_Fraction9r, Sum_Fraction10r, Sum_Fraction11r, Sum_Fraction12r, Sum_Fraction13r, Sum_Fraction14r, Sum_Fraction15r, Sum_Fraction16r, Sum_Fraction17r, Sum_Fraction18r, Sum_Fraction19r, Sum_Fraction20r, Sum_Fraction21r, Sum_Fraction22r, Sum_Fraction23r, Sum_Fraction24r, Sum_Fraction25r )
+
+
+```
+```{r}
+#Differenzen von Summe Kontrolle und Summe RNase
+dif1 =Sum_Fraction1c - Sum_Fraction1r
+dif2 =Sum_Fraction2c - Sum_Fraction2r
+dif3 =Sum_Fraction3c - Sum_Fraction3r
+dif4 =Sum_Fraction4c - Sum_Fraction4r
+dif5 =Sum_Fraction5c - Sum_Fraction5r
+dif6 =Sum_Fraction6c - Sum_Fraction6r
+dif7 =Sum_Fraction7c - Sum_Fraction7r
+dif8 =Sum_Fraction8c - Sum_Fraction8r
+dif9 =Sum_Fraction9c - Sum_Fraction9r
+dif10 =Sum_Fraction10c - Sum_Fraction10r
+dif11 =Sum_Fraction11c - Sum_Fraction11r
+dif12 =Sum_Fraction12c - Sum_Fraction12r
+dif13 =Sum_Fraction13c - Sum_Fraction13r
+dif14 =Sum_Fraction14c - Sum_Fraction14r
+dif15 =Sum_Fraction15c - Sum_Fraction15r
+dif16 =Sum_Fraction16c - Sum_Fraction16r
+dif17 =Sum_Fraction17c - Sum_Fraction17r
+dif18 =Sum_Fraction18c - Sum_Fraction18r
+dif19 =Sum_Fraction19c - Sum_Fraction19r
+dif20 =Sum_Fraction20c - Sum_Fraction20r
+dif21 =Sum_Fraction21c - Sum_Fraction21r
+dif22 =Sum_Fraction22c - Sum_Fraction22r
+dif23 =Sum_Fraction23c - Sum_Fraction23r
+dif24 =Sum_Fraction24c - Sum_Fraction24r
+dif25 =Sum_Fraction25c - Sum_Fraction25r
+
+ #Ich hab alle differenzen in einen Vektor gemacht, um die Weiterarbeit damit zu vereinfachen 
+Differences_c_r = c(dif1, dif2, dif3, dif4, dif5, dif6, dif7, dif8, dif9, dif10, dif11, dif12, dif13, dif14, dif15, dif16, dif17, dif18, dif19, dif20, dif21, dif22, dif23, dif24, dif25)
+Differences_c_r
+```
+```{r}
+sum(Sum_control[1:3])
+sum(Sum_rnase[1:3]) #war auch nur zur Kontrolle, dass die Werte stimmen
+```
+```{r}
+#berechnet 5% von den jeweiligen Vektoren für Control und RNase Summe
+Sum5_c = lapply(Sum_c, function(x){func=x*0.05} )
+Sum5_r = lapply(Sum_r, function(x){func=x*0.05})
+
+#Hab ne Matrix geamcht, damit mans einfacher vergleichen kann (zumindest ich)
+Matrix_summenvergleich = data.frame(Sum5_c, Sum5_r)
+
+Matrix_summenvergleich$größer = ifelse(Matrix_summenvergleich$Sum5_c > Matrix_summenvergleich$Sum5_r,Sum5_c, ifelse(Matrix_summenvergleich$Sum5_c < Matrix_summenvergleich$Sum5_r, Sum5_r, )) #ich weiß nicht, was hier der fehler ist, was bedeutet Ersetzung hat 0 Zeilen, Daten haben 1?
+
+#das wär dann in der theorie, um die Werte zu erhalten, wo die Differenz von Control und RNase größer ist, als 5% vom größeren der beiden Werte, die man dann quasi rauswerfen könnte, weil die Different der beiden zu groß ist, und somit irgendwo Protein verloren gegangen ist
+delete_sums = lapply(Differences_c_r, function(x){func= x> Matrix_summenvergleich$größer})
+
+
+
+```
+
+
