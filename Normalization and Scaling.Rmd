@@ -156,5 +156,34 @@ for (i in 1:nrow(rnase_norm3)) {
 ```{r}
 #Smoothing 
 
+#jeden Wert durch den Mittelwert der beiden werte daneben ersetzten 
+#außer Ränder, weil die sind Grenzen 
+
+#soll durch die Zeilen des dataframes iterieren und jeden Wert (2-24) durch den Mittelwert der Nachbarwerte ersetzten
+
+replace_mean = function(x){
+  for (i in 2:24){
+  x[i] = mean(x[(i-1):(i+1)]) 
+  }
+  return(x)
+}
+  
+ctrl_smooth1 = apply(ctrl_norm1, 1, replace_mean) #wendet Funktion auf ctrl_norm1 und definiert dabei neue Funktion ctrl_smooth1
+ctrl_smooth2 = apply(ctrl_norm2, 1, replace_mean)
+ctrl_smooth3 = apply(ctrl_norm3, 1, replace_mean)
+
+rnase_smooth1 = apply(rnase_norm1, 1, replace_mean)
+rnase_smooth2 = apply(rnase_norm2, 1, replace_mean)
+rnase_smooth3 = apply(rnase_norm3, 1, replace_mean)
+
+
+ctrl_smooth1 = t(ctrl_smooth1) #Funktionen werden transposed (nicht nötig aber besser für unser Verständnis)
+ctrl_smooth2 = t(ctrl_smooth2)
+ctrl_smooth3 = t(ctrl_smooth3)
+
+rnase_smooth1 = t(rnase_smooth1)
+rnase_smooth2 = t(rnase_smooth2)
+rnase_smooth3 = t(rnase_smooth3)
+
 ```
 
