@@ -1,0 +1,425 @@
+---
+title: "non-synchronized HeLa cells"
+output: pdf_document
+date: "2023-04-24"
+---
+
+```{r}
+MS_Table <- read.table("~/Downloads/RDeeP_HeLa_NS.csv", header=TRUE, row.names=1, sep = ";")
+```
+
+```{r}
+head(rownames(MS_Table),12)
+
+rownames(MS_Table[2, ])
+
+View(MS_Table)
+```
+
+```{r}
+dim(MS_Table)
+```
+
+```{r}
+ctrl = MS_Table[seq(1, ncol(MS_Table), by = 2)] #Nur Control Replicates 
+rnase = MS_Table[seq(2, ncol(MS_Table), by = 2)] #Nur RNase Replicates 
+
+#weiteres Auftrennen um es leichter zu haben Zeilen zu finden 
+ctrl1 = ctrl[seq(1, ncol(ctrl), by = 3)]
+ctrl2 = ctrl[seq(2, ncol(ctrl), by = 3)]
+ctrl3 = ctrl[seq(3, ncol(ctrl), by = 3)]
+
+rnase1 = rnase[seq(1, ncol(ctrl), by = 3)]
+rnase2 = rnase[seq(2, ncol(ctrl), by = 3)]
+rnase3 = rnase[seq(3, ncol(ctrl), by = 3)]
+
+```
+
+```{r}
+# Null Zeilen finden 
+# which und apply geht durch alle zeile durch un rechnet die summen zusammen, um die zeilen zu finden dessen summe 0 ist 
+remove_ctrl1 = which(apply(ctrl1, 1, sum) == 0)
+remove_ctrl2 = which(apply(ctrl2, 1, sum) == 0)
+remove_ctrl3 = which(apply(ctrl3, 1, sum) == 0)
+
+remove_rnase1 = which(apply(rnase1, 1, sum) == 0)
+remove_rnase2 = which(apply(rnase2, 1, sum) == 0)
+remove_rnase3 = which(apply(rnase3, 1, sum) == 0)
+
+#Null Zeilen entfernen
+# einen vektor mit alles gefundenen Nullstellen füllen, um dann diese alle aus dem Dataframe auf einmal zu entfernen 
+zeros_ctrl = c(remove_ctrl1, remove_ctrl2, remove_ctrl3, remove_rnase1, remove_rnase2, remove_rnase3) #Vektor, der mit allen gefundenen Nullen gefüllt ist  
+ctrl_zeros = ctrl[-zeros_ctrl,] #neue Control data frame mit entfernten Nullen 
+
+zeros_rnase = c(remove_ctrl1, remove_ctrl2, remove_ctrl3, remove_rnase1, remove_rnase2, remove_rnase3)
+rnase_zeros = rnase[-zeros_rnase,]
+
+```
+
+
+
+```{r}
+#Normalisation
+#Control Datensatz
+for (i in seq(1, 73, by = 3)) {
+  # Iterate through the fractions (each fraction has 3 replicates)
+  
+  # Compute the sums of every replicate
+ sums <- c(sum(ctrl_zeros[, i]), sum(ctrl_zeros[, i + 1]), sum(ctrl_zeros[, i + 2]))
+  
+  # Compute the mean value of the two closest sums
+  diffs <- abs(sums - mean(sums))
+  mean_sum <- mean(sums[which.min(diffs)])
+  
+  # Compute the normalization factors
+  norm_factor <- mean_sum / sums
+  
+  # Multiply the normalization factors with their corresponding replicates
+  ctrl_zeros[, i] <- ctrl_zeros[, i] * norm_factor[1]
+  ctrl_zeros[, i + 1] <- ctrl_zeros[, i + 1] * norm_factor[2]
+  ctrl_zeros[, i + 2] <- ctrl_zeros[, i + 2] * norm_factor[3]
+}
+
+
+#RNAse Datensatz
+for (i in seq(1, 73, by = 3)) {
+  # Iterate through the fractions (each fraction has 3 replicates)
+  
+  # Compute the sums of every replicate
+ sums <- c(sum(rnase_zeros[, i]), sum(rnase_zeros[, i + 1]), sum(rnase_zeros[, i + 2]))
+  
+  # Compute the mean value of the two closest sums
+  diffs <- abs(sums - mean(sums))
+  mean_sum <- mean(sums[which.min(diffs)])
+  
+  # Compute the normalization factors
+  norm_factor <- mean_sum / sums
+  
+  # Multiply the normalization factors with their corresponding replicates
+  rnase_zeros[, i] <- rnase_zeros[, i] * norm_factor[1]
+  rnase_zeros[, i + 1] <- rnase_zeros[, i + 1] * norm_factor[2]
+  rnase_zeros[, i + 2] <- rnase_zeros[, i + 2] * norm_factor[3]
+}
+```
+
+```{r}
+# Scaling also ein Wertebereich 
+
+ctrl_norm1 = ctrl_zeros[seq(1, ncol(ctrl_zeros), by = 3)]
+ctrl_norm2 = ctrl_zeros[seq(2, ncol(ctrl_zeros), by = 3)]
+ctrl_norm3 = ctrl_zeros[seq(3, ncol(ctrl_zeros), by = 3)]
+
+rnase_norm1 = rnase_zeros[seq(1, ncol(rnase_zeros), by = 3)]
+rnase_norm2 = rnase_zeros[seq(2, ncol(rnase_zeros), by = 3)]
+rnase_norm3 = rnase_zeros[seq(3, ncol(rnase_zeros), by = 3)]
+
+#Summer der col / 100 um Quotienten zu erhalten 
+
+#QX = sum(rnase_norm1[1, ])/100
+#rnase_norm1[1,1] = rnase_norm1[1,1]/QX
+
+#control
+for (i in 1:nrow(ctrl_norm1)) { 
+  QX = sum(ctrl_norm1[i, ])/100
+  ctrl_norm1[i, ] = ctrl_norm1[i, ]/QX
+}
+
+for (i in 1:nrow(ctrl_norm2)) { 
+  QX = sum(ctrl_norm2[i, ])/100
+  ctrl_norm2[i, ] = ctrl_norm2[i, ]/QX
+}
+
+for (i in 1:nrow(ctrl_norm3)) { 
+  QX = sum(ctrl_norm3[i, ])/100
+  ctrl_norm3[i, ] = ctrl_norm3[i, ]/QX
+}
+
+#rnase
+for (i in 1:nrow(rnase_norm1)) { 
+  QX = sum(rnase_norm1[i, ])/100
+  rnase_norm1[i, ] = rnase_norm1[i, ]/QX
+}
+
+for (i in 1:nrow(rnase_norm2)) { 
+  QX = sum(rnase_norm2[i, ])/100
+  rnase_norm2[i, ] = rnase_norm2[i, ]/QX
+}
+
+for (i in 1:nrow(rnase_norm3)) { 
+  QX = sum(rnase_norm3[i, ])/100
+  rnase_norm3[i, ] = rnase_norm3[i, ]/QX
+}
+
+```
+
+
+```{r}
+#Smoothing 
+
+#jeden Wert durch den Mittelwert der beiden werte daneben ersetzten 
+#außer Ränder, weil die sind Grenzen 
+
+#soll durch die Zeilen des dataframes iterieren und jeden Wert (2-24) durch den Mittelwert der Nachbarwerte ersetzten
+
+replace_mean = function(x){
+  for (i in 2:24){
+  x[i] = mean(x[(i-1):(i+1)]) 
+  }
+  return(x)
+}
+  
+ctrl_smooth1 = apply(ctrl_norm1, 1, replace_mean) #wendet Funktion auf ctrl_norm1 und definiert dabei neue Funktion ctrl_smooth1
+ctrl_smooth2 = apply(ctrl_norm2, 1, replace_mean)
+ctrl_smooth3 = apply(ctrl_norm3, 1, replace_mean)
+
+rnase_smooth1 = apply(rnase_norm1, 1, replace_mean)
+rnase_smooth2 = apply(rnase_norm2, 1, replace_mean)
+rnase_smooth3 = apply(rnase_norm3, 1, replace_mean)
+
+
+ctrl_smooth1 = t(ctrl_smooth1) #Funktionen werden transposed (nicht nötig aber besser für unser Verständnis)
+ctrl_smooth2 = t(ctrl_smooth2)
+ctrl_smooth3 = t(ctrl_smooth3)
+
+rnase_smooth1 = t(rnase_smooth1)
+rnase_smooth2 = t(rnase_smooth2)
+rnase_smooth3 = t(rnase_smooth3)
+
+```
+
+```{r}
+#ist jetzt nur pearson, wenn ich von Fabio ne Antwort zu Spearman bekomm, kann ich das ja noch abändern
+#erstmal rnase_smooth1 mit rnase_smooth2
+# Leerer Vektor für die Korrelationskoeffizienten
+correlations_p12_rnase = vector()
+
+# Schleife, um alle Zeilen miteinander zu vergleichen
+for (p in 1:nrow(rnase_smooth1)) {
+  row_smooth1 = rnase_smooth1[p, ]
+  row_smooth2 = rnase_smooth2[p, ]
+
+  correlation_p12_rnase = cor.test(as.numeric(row_smooth1), as.numeric(row_smooth2), method = "pearson")
+  correlations_p12_rnase = c(correlations_p12_rnase, correlation_p12_rnase$estimate)
+}
+
+# Ausgabe der Korrelationskoeffizienten
+print(correlations_p12_rnase)
+length(correlations_p12_rnase) #war nur zur Kontrolle, ob die Länge passt
+
+#jetzt rnase_smooth2 mit rnase_smooth3
+# Leerer Vektor für die Korrelationskoeffizienten
+correlations_p23_rnase = vector()
+
+# Schleife, um alle Zeilen miteinander zu vergleichen
+for (p in 1:nrow(rnase_smooth2)) {
+  row_smooth2 = rnase_smooth2[p, ]
+  row_smooth3 = rnase_smooth3[p, ]
+
+  correlation_p23_rnase = cor.test(as.numeric(row_smooth2), as.numeric(row_smooth3), method = "pearson")
+  correlations_p23_rnase = c(correlations_p23_rnase, correlation_p23_rnase$estimate)
+}
+
+#jetzt rnase_smooth3 mit rnase_smooth1
+# Leerer Vektor für die Korrelationskoeffizienten
+correlations_p31_rnase = vector()
+
+# Schleife, um alle Zeilen miteinander zu vergleichen
+for (p in 1:nrow(rnase_smooth3)) {
+  row_smooth3 = rnase_smooth3[p, ]
+  row_smooth1 = rnase_smooth1[p, ]
+
+  correlation_p31_rnase = cor.test(as.numeric(row_smooth3), as.numeric(row_smooth1), method = "pearson")
+  correlations_p31_rnase = c(correlations_p31_rnase, correlation_p31_rnase$estimate)
+}
+
+#jetzt mach ich das selbe, aber mit den control werten statt mit den rnase werten
+#jetzt ctrl_smooth1 mit ctrl_smooth2
+# Leerer Vektor für die Korrelationskoeffizienten
+correlations_p12_ctrl = vector()
+
+# Schleife, um alle Zeilen miteinander zu vergleichen
+for (p in 1:nrow(ctrl_smooth1)) {
+  row_smooth1c = ctrl_smooth1[p, ]
+  row_smooth2c = ctrl_smooth2[p, ]
+
+  correlation_p12_ctrl = cor.test(as.numeric(row_smooth1c), as.numeric(row_smooth2c), method = "pearson")
+  correlations_p12_ctrl = c(correlations_p12_ctrl, correlation_p12_ctrl$estimate)
+}
+
+#jetzt ctrl_smooth2 mit ctrl_smooth3
+# Leerer Vektor für die Korrelationskoeffizienten
+correlations_p23_ctrl = vector()
+
+# Schleife, um alle Zeilen miteinander zu vergleichen
+for (p in 1:nrow(ctrl_smooth2)) {
+  row_smooth2c = ctrl_smooth2[p, ]
+  row_smooth3c = ctrl_smooth3[p, ]
+
+  correlation_p23_ctrl = cor.test(as.numeric(row_smooth2c), as.numeric(row_smooth3c), method = "pearson")
+  correlations_p23_ctrl = c(correlations_p23_ctrl, correlation_p23_ctrl$estimate)
+}
+
+#jetzt ctrl_smooth3 mit ctrl_smooth1
+# Leerer Vektor für die Korrelationskoeffizienten
+correlations_p31_ctrl = vector()
+
+# Schleife, um alle Zeilen miteinander zu vergleichen
+for (p in 1:nrow(ctrl_smooth3)) {
+  row_smooth3c = ctrl_smooth3[p, ]
+  row_smooth1c = ctrl_smooth1[p, ]
+
+  correlation_p31_ctrl = cor.test(as.numeric(row_smooth3c), as.numeric(row_smooth1c), method = "pearson")
+  correlations_p31_ctrl = c(correlations_p31_ctrl, correlation_p31_ctrl$estimate)
+}
+
+#Summe aller Werte, die rausgeworfen werden, d.h. die in mindestens 1 Vektor kleiner als 0.8 sind
+
+Sum_delete_p = sum(correlations_p12_rnase < 0.8 | correlations_p23_rnase < 0.8 | correlations_p31_rnase < 0.8 | correlations_p12_ctrl < 0.8 | correlations_p23_ctrl < 0.8 | correlations_p31_ctrl < 0.8 )
+Sum_delete_p
+
+# die Werte, die unter 0.8 sind in einen Vektor zusammengefasst
+delete_correlation = which(correlations_p12_rnase < 0.8 | correlations_p23_rnase < 0.8 | correlations_p31_rnase < 0.8 | correlations_p12_ctrl < 0.8 | correlations_p23_ctrl < 0.8 | correlations_p31_ctrl < 0.8)
+delete_correlation
+
+#sind genau 413 Werte, also die, die oben bei Summe angezeigt werden
+
+#neue Vektoren, wo die zu niedrigen Korrelationen gelöscht wurden
+ctrl_smooth1 = ctrl_smooth1[-delete_correlation,]
+ctrl_smooth2 = ctrl_smooth2[-delete_correlation,]
+ctrl_smooth3 = ctrl_smooth3[-delete_correlation,]
+rnase_smooth1 = rnase_smooth1[-delete_correlation,]
+rnase_smooth2 = rnase_smooth2[-delete_correlation,]
+rnase_smooth3 = rnase_smooth3[-delete_correlation,]
+#irgendwie kommt das von den Elementenanzahl in rnase_smooth1 etc. nicht hin, es werden so grob 150 Elemente weniger und das kann ja irgendiwie nicht sein, es müssten doch 413 Proteine mal 25 Fraktionen weniger sein, also ist der Code falsch oder hab ich da nen Denkfehler drinnen?
+```
+
+
+
+```{r}
+# ctrl
+ 
+#Mean Dataframe erstellen
+ 
+#neue Dataframe mit allen reps erstellen
+ctrl_bind = cbind(ctrl_smooth1, ctrl_smooth2, ctrl_smooth3)
+ 
+#einzelne Fractions (Rep 1, Rep 2, Rep 3) aus der Dataframe rausnehmen
+ 
+cF1 = cbind(ctrl_bind[ ,1], ctrl_bind[ ,26], ctrl_bind[ ,51])
+cF2 = cbind(ctrl_bind[ ,2], ctrl_bind[ ,27], ctrl_bind[ ,52])
+cF3 = cbind(ctrl_bind[ ,3], ctrl_bind[ ,28], ctrl_bind[ ,53])
+cF4 = cbind(ctrl_bind[ ,4], ctrl_bind[ ,29], ctrl_bind[ ,54])
+cF5 = cbind(ctrl_bind[ ,5], ctrl_bind[ ,30], ctrl_bind[ ,55])
+cF6 = cbind(ctrl_bind[ ,6], ctrl_bind[ ,31], ctrl_bind[ ,56])
+cF7 = cbind(ctrl_bind[ ,7], ctrl_bind[ ,32], ctrl_bind[ ,57])
+cF8 = cbind(ctrl_bind[ ,8], ctrl_bind[ ,33], ctrl_bind[ ,58])
+cF9 = cbind(ctrl_bind[ ,9], ctrl_bind[ ,34], ctrl_bind[ ,59])
+cF10 = cbind(ctrl_bind[ ,10], ctrl_bind[ ,35], ctrl_bind[ ,60])
+cF11 = cbind(ctrl_bind[ ,11], ctrl_bind[ ,36], ctrl_bind[ ,61])
+cF12 = cbind(ctrl_bind[ ,12], ctrl_bind[ ,37], ctrl_bind[ ,62])
+cF13 = cbind(ctrl_bind[ ,13], ctrl_bind[ ,38], ctrl_bind[ ,63])
+cF14 = cbind(ctrl_bind[ ,14], ctrl_bind[ ,39], ctrl_bind[ ,64])
+cF15 = cbind(ctrl_bind[ ,15], ctrl_bind[ ,40], ctrl_bind[ ,65])
+cF16 = cbind(ctrl_bind[ ,16], ctrl_bind[ ,41], ctrl_bind[ ,66])
+cF17 = cbind(ctrl_bind[ ,17], ctrl_bind[ ,42], ctrl_bind[ ,67])
+cF18 = cbind(ctrl_bind[ ,18], ctrl_bind[ ,43], ctrl_bind[ ,68])
+cF19 = cbind(ctrl_bind[ ,19], ctrl_bind[ ,44], ctrl_bind[ ,69])
+cF20 = cbind(ctrl_bind[ ,20], ctrl_bind[ ,45], ctrl_bind[ ,70])
+cF21 = cbind(ctrl_bind[ ,21], ctrl_bind[ ,46], ctrl_bind[ ,71])
+cF22 = cbind(ctrl_bind[ ,22], ctrl_bind[ ,47], ctrl_bind[ ,72])
+cF23 = cbind(ctrl_bind[ ,23], ctrl_bind[ ,48], ctrl_bind[ ,73])
+cF24 = cbind(ctrl_bind[ ,24], ctrl_bind[ ,49], ctrl_bind[ ,74])
+cF25 = cbind(ctrl_bind[ ,25], ctrl_bind[ ,50], ctrl_bind[ ,75])
+ 
+#jeweils den mean wert der Fractions aud en Reps erstellen
+ 
+cF1_mean = as.data.frame(apply(cF1, 1, mean))
+cF2_mean = as.data.frame(apply(cF2, 1, mean))
+cF3_mean = as.data.frame(apply(cF3, 1, mean))
+cF4_mean = as.data.frame(apply(cF4, 1, mean))
+cF5_mean = as.data.frame(apply(cF5, 1, mean))
+cF6_mean = as.data.frame(apply(cF6, 1, mean))
+cF7_mean = as.data.frame(apply(cF7, 1, mean))
+cF8_mean = as.data.frame(apply(cF8, 1, mean))
+cF9_mean = as.data.frame(apply(cF9, 1, mean))
+cF10_mean = as.data.frame(apply(cF10, 1, mean))
+cF11_mean = as.data.frame(apply(cF11, 1, mean))
+cF12_mean = as.data.frame(apply(cF12, 1, mean))
+cF13_mean = as.data.frame(apply(cF13, 1, mean))
+cF14_mean = as.data.frame(apply(cF14, 1, mean))
+cF15_mean = as.data.frame(apply(cF15, 1, mean))
+cF16_mean = as.data.frame(apply(cF16, 1, mean))
+cF17_mean = as.data.frame(apply(cF17, 1, mean))
+cF18_mean = as.data.frame(apply(cF18, 1, mean))
+cF19_mean = as.data.frame(apply(cF19, 1, mean))
+cF20_mean = as.data.frame(apply(cF20, 1, mean))
+cF21_mean = as.data.frame(apply(cF21, 1, mean))
+cF22_mean = as.data.frame(apply(cF22, 1, mean))
+cF23_mean = as.data.frame(apply(cF23, 1, mean))
+cF24_mean = as.data.frame(apply(cF24, 1, mean))
+cF25_mean = as.data.frame(apply(cF25, 1, mean))
+ 
+#mean Werte wieder als neue Dataframe zusammenfügen
+ 
+ctrl_mean = cbind(cF1_mean, cF2_mean, cF3_mean, cF4_mean, cF5_mean, cF6_mean, cF7_mean, cF8_mean, cF9_mean, cF10_mean, cF11_mean, cF12_mean, cF13_mean, cF14_mean, cF15_mean, cF16_mean, cF17_mean, cF18_mean, cF19_mean, cF20_mean, cF21_mean, cF22_mean, cF23_mean, cF24_mean, cF25_mean)
+ 
+#rnase Dataframe
+ 
+rnase_bind = cbind(rnase_smooth1, rnase_smooth2, rnase_smooth3)
+ 
+rF1 = cbind(rnase_bind[ ,1], rnase_bind[ ,26], rnase_bind[ ,51])
+rF2 = cbind(rnase_bind[ ,2], rnase_bind[ ,27], rnase_bind[ ,52])
+rF3 = cbind(rnase_bind[ ,3], rnase_bind[ ,28], rnase_bind[ ,53])
+rF4 = cbind(rnase_bind[ ,4], rnase_bind[ ,29], rnase_bind[ ,54])
+rF5 = cbind(rnase_bind[ ,5], rnase_bind[ ,30], rnase_bind[ ,55])
+rF6 = cbind(rnase_bind[ ,6], rnase_bind[ ,31], rnase_bind[ ,56])
+rF7 = cbind(rnase_bind[ ,7], rnase_bind[ ,32], rnase_bind[ ,57])
+rF8 = cbind(rnase_bind[ ,8], rnase_bind[ ,33], rnase_bind[ ,58])
+rF9 = cbind(rnase_bind[ ,9], rnase_bind[ ,34], rnase_bind[ ,59])
+rF10 = cbind(rnase_bind[ ,10], rnase_bind[ ,35], rnase_bind[ ,60])
+rF11 = cbind(rnase_bind[ ,11], rnase_bind[ ,36], rnase_bind[ ,61])
+rF12 = cbind(rnase_bind[ ,12], rnase_bind[ ,37], rnase_bind[ ,62])
+rF13 = cbind(rnase_bind[ ,13], rnase_bind[ ,38], rnase_bind[ ,63])
+rF14 = cbind(rnase_bind[ ,14], rnase_bind[ ,39], rnase_bind[ ,64])
+rF15 = cbind(rnase_bind[ ,15], rnase_bind[ ,40], rnase_bind[ ,65])
+rF16 = cbind(rnase_bind[ ,16], rnase_bind[ ,41], rnase_bind[ ,66])
+rF17 = cbind(rnase_bind[ ,17], rnase_bind[ ,42], rnase_bind[ ,67])
+rF18 = cbind(rnase_bind[ ,18], rnase_bind[ ,43], rnase_bind[ ,68])
+rF19 = cbind(rnase_bind[ ,19], rnase_bind[ ,44], rnase_bind[ ,69])
+rF20 = cbind(rnase_bind[ ,20], rnase_bind[ ,45], rnase_bind[ ,70])
+rF21 = cbind(rnase_bind[ ,21], rnase_bind[ ,46], rnase_bind[ ,71])
+rF22 = cbind(rnase_bind[ ,22], rnase_bind[ ,47], rnase_bind[ ,72])
+rF23 = cbind(rnase_bind[ ,23], rnase_bind[ ,48], rnase_bind[ ,73])
+rF24 = cbind(rnase_bind[ ,24], rnase_bind[ ,49], rnase_bind[ ,74])
+rF25 = cbind(rnase_bind[ ,25], rnase_bind[ ,50], rnase_bind[ ,75])
+ 
+rF1_mean = as.data.frame(apply(rF1, 1, mean))
+rF2_mean = as.data.frame(apply(rF2, 1, mean))
+rF3_mean = as.data.frame(apply(rF3, 1, mean))
+rF4_mean = as.data.frame(apply(rF4, 1, mean))
+rF5_mean = as.data.frame(apply(rF5, 1, mean))
+rF6_mean = as.data.frame(apply(rF6, 1, mean))
+rF7_mean = as.data.frame(apply(rF7, 1, mean))
+rF8_mean = as.data.frame(apply(rF8, 1, mean))
+rF9_mean = as.data.frame(apply(rF9, 1, mean))
+rF10_mean = as.data.frame(apply(rF10, 1, mean))
+rF11_mean = as.data.frame(apply(rF11, 1, mean))
+rF12_mean = as.data.frame(apply(rF12, 1, mean))
+rF13_mean = as.data.frame(apply(rF13, 1, mean))
+rF14_mean = as.data.frame(apply(rF14, 1, mean))
+rF15_mean = as.data.frame(apply(rF15, 1, mean))
+rF16_mean = as.data.frame(apply(rF16, 1, mean))
+rF17_mean = as.data.frame(apply(rF17, 1, mean))
+rF18_mean = as.data.frame(apply(rF18, 1, mean))
+rF19_mean = as.data.frame(apply(rF19, 1, mean))
+rF20_mean = as.data.frame(apply(rF20, 1, mean))
+rF21_mean = as.data.frame(apply(rF21, 1, mean))
+rF22_mean = as.data.frame(apply(rF22, 1, mean))
+rF23_mean = as.data.frame(apply(rF23, 1, mean))
+rF24_mean = as.data.frame(apply(rF24, 1, mean))
+rF25_mean = as.data.frame(apply(rF25, 1, mean))
+ 
+ 
+rnase_mean = cbind(rF1_mean, rF2_mean, rF3_mean, rF4_mean, rF5_mean, rF6_mean, rF7_mean, rF8_mean, rF9_mean, rF10_mean, rF11_mean, rF12_mean, rF13_mean, rF14_mean, rF15_mean, rF16_mean, rF17_mean, rF18_mean, rF19_mean, rF20_mean, rF21_mean, rF22_mean, rF23_mean, rF24_mean, rF25_mean)
+```
+
