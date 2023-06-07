@@ -283,12 +283,12 @@ delete_correlation
 #sind genau 413 Werte, also die, die oben bei Summe angezeigt werden
 
 #neue Vektoren, wo die zu niedrigen Korrelationen gelöscht wurden
-ctrl_smooth1 = ctrl_smooth1[-delete_correlation]
-ctrl_smooth2 = ctrl_smooth2[-delete_correlation]
-ctrl_smooth3 = ctrl_smooth3[-delete_correlation]
-rnase_smooth1 = rnase_smooth1[-delete_correlation]
-rnase_smooth2 = rnase_smooth2[-delete_correlation]
-rnase_smooth3 = rnase_smooth3[-delete_correlation]
+ctrl_smooth1 = ctrl_smooth1[-delete_correlation,]
+ctrl_smooth2 = ctrl_smooth2[-delete_correlation,]
+ctrl_smooth3 = ctrl_smooth3[-delete_correlation,]
+rnase_smooth1 = rnase_smooth1[-delete_correlation,]
+rnase_smooth2 = rnase_smooth2[-delete_correlation,]
+rnase_smooth3 = rnase_smooth3[-delete_correlation,]
 #irgendwie kommt das von den Elementenanzahl in rnase_smooth1 etc. nicht hin, es werden so grob 150 Elemente weniger und das kann ja irgendiwie nicht sein, es müssten doch 413 Proteine mal 25 Fraktionen weniger sein, also ist der Code falsch oder hab ich da nen Denkfehler drinnen?
 ```
 
