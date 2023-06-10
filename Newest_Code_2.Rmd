@@ -421,3 +421,43 @@ rF25_mean = as.data.frame(apply(rF25, 1, mean))
 rnase_mean = cbind(rF1_mean, rF2_mean, rF3_mean, rF4_mean, rF5_mean, rF6_mean, rF7_mean, rF8_mean, rF9_mean, rF10_mean, rF11_mean, rF12_mean, rF13_mean, rF14_mean, rF15_mean, rF16_mean, rF17_mean, rF18_mean, rF19_mean, rF20_mean, rF21_mean, rF22_mean, rF23_mean, rF24_mean, rF25_mean)
 ```
 
+```{r}
+#global peaks finden
+global_peak_finder = function(x) which(x == max(x))
+global_peak_ctrl_mean = apply(ctrl_mean, 1, global_peak_finder)
+global_peak_ctrl_mean
+global_peak_rnase_mean = apply(rnase_mean, 1, global_peak_finder)
+as.data.frame(global_peak_ctrl1)
+```
+
+
+```{r}
+#local peaks finden
+local_peak_finder = function(x) {
+  peaks <- c()
+ 
+  for (i in 3:(length(x) - 2)) {
+    if (x[i] > x[i+1] & x[i] > x[i-1] & x[i] > x[i+2] & x[i] > x[i-2])
+      peaks = c(peaks, i)
+  }
+ 
+  if(i == (length(x) - 1)) {
+    if (x[i] > x[i+1] & x[i] > x[i-1] & x[i] > x[i-2])
+       peaks = c(peaks, i)
+  }
+      
+  if(i == length(x)) {
+    if (x[i] > x[i-1] & x[i] > x[i-2])
+      peaks = c(peaks, i)
+  }
+      
+  return(peaks)
+     
+}
+ 
+ctrl_mean_lp = apply(as.data.frame(ctrl_mean), 1, local_peak_finder)
+rnase_mean_lp = apply(as.data.frame(rnase_mean), 1, local_peak_finder)
+
+
+```
+
