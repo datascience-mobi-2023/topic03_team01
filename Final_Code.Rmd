@@ -5,6 +5,7 @@ date: "2023-07-05"
 ---
 
 ```{r}
+#importing data into R
 MS_Table <- read.table("~/Downloads/RDeeP_HeLa_NS.csv", header=TRUE, row.names=1, sep = ";")
 ```
 
@@ -14,8 +15,8 @@ MS_Table <- read.table("~/Downloads/RDeeP_HeLa_NS.csv", header=TRUE, row.names=1
 ctrl = MS_Table[seq(1, ncol(MS_Table), by = 2)] #only Control Replicates 
 rnase = MS_Table[seq(2, ncol(MS_Table), by = 2)] #only RNase Replicates 
 
-#further separation into Dataframes with only oen Rep, to simplify coding the analysis for us 
-ctrl1 = ctrl[seq(1, ncol(ctrl), by = 3)] #after lokking at the dataframe, every thid column belongs to one Rep, separation by 3 
+#further separation into data frames with only one Rep, to simplify coding the analysis for us 
+ctrl1 = ctrl[seq(1, ncol(ctrl), by = 3)] #after looking at the data frame, every third column belongs to one Rep, separation by 3 
 ctrl2 = ctrl[seq(2, ncol(ctrl), by = 3)]
 ctrl3 = ctrl[seq(3, ncol(ctrl), by = 3)]
 
@@ -28,7 +29,7 @@ rnase3 = rnase[seq(3, ncol(ctrl), by = 3)]
 ```{r}
 #Data clean up
 #finding replicates with zeros only 
-#which function is used to store the indexes of the row with zeros only, apply to iterate the code through the whole dataframe, sum was used to identify rows with only zeros
+#which function is used to store the indices of the row with zeros only, apply to iterate the code through the whole data frame, sum was used to identify rows with only zeros
 remove_ctrl1 = which(apply(ctrl1, 1, sum) == 0)
 remove_ctrl2 = which(apply(ctrl2, 1, sum) == 0)
 remove_ctrl3 = which(apply(ctrl3, 1, sum) == 0)
@@ -39,54 +40,53 @@ remove_rnase3 = which(apply(rnase3, 1, sum) == 0)
 
 #remove proteins, which have at least one replicate containing only zeros 
 #one vector contains all zero rows, to delete every unusable protein at once 
-zeros_ctrl = c(remove_ctrl1, remove_ctrl2, remove_ctrl3, remove_rnase1, remove_rnase2, remove_rnase3) #Vektor, der mit allen gefundenen Nullen gefüllt ist  
-ctrl_zeros = ctrl[-zeros_ctrl,] #new control data frame without the proteins, whihc have at least one repilcate containing only zeros
+zeros_ctrl = c(remove_ctrl1, remove_ctrl2, remove_ctrl3, remove_rnase1, remove_rnase2, remove_rnase3)  
+ctrl_zeros = ctrl[-zeros_ctrl,] #new control data frame without the proteins, which have at least one replicate containing only zeros
 
 zeros_rnase = c(remove_ctrl1, remove_ctrl2, remove_ctrl3, remove_rnase1, remove_rnase2, remove_rnase3)
-rnase_zeros = rnase[-zeros_rnase,] #new RNase data frame without the proteins, which have at least one replicate containing only zeros, all replicates recombined
+rnase_zeros = rnase[-zeros_rnase,] #new RNase data frame without the proteins, which have at least one replicate containing only zeros, all replicates put back together
 
 ```
 
 
 ```{r}
-#Normalisation
+#Normalization
 #Control data frame 
-for (i in seq(1, 73, by = 3)) {
-  # Iterate through the fractions (each fraction has 3 replicates)
+for (i in seq(1, 73, by = 3)) { #Iterate through the fractions (each fraction has 3 replicates)
   
-  # Compute the sums of every replicate
+ #Compute the sums of every replicate
  sums = c(sum(ctrl_zeros[, i]), sum(ctrl_zeros[, i + 1]), sum(ctrl_zeros[, i + 2]))
   
-  # Compute the mean value of the two closest sums
+  #Determine sum closest to mean of sums 
   diffs = abs(sums - mean(sums))
-  mean_sum = mean(sums[which.min(diffs)])
+  sum_least_difference = sums[which.min(diffs)]
   
-  # Compute the normalization factors
-  norm_factor = mean_sum / sums
+  #Compute the normalization factors
+  norm_factor = sum_least_difference / sums
   
-  # Multiply the normalization factors with their corresponding replicates
+  #Multiply the normalization factors with their corresponding replicates
   ctrl_zeros[, i] = ctrl_zeros[, i] * norm_factor[1]
   ctrl_zeros[, i + 1] = ctrl_zeros[, i + 1] * norm_factor[2]
   ctrl_zeros[, i + 2] = ctrl_zeros[, i + 2] * norm_factor[3]
 }
 
 
-#RNAse data frame
-#same steps were applied to the RNase dataframe 
+#RNase data frame
+#same steps were applied to the RNase data frame 
 for (i in seq(1, 73, by = 3)) {
-  # Iterate through the fractions (each fraction has 3 replicates)
+  #Iterate through the fractions (each fraction has 3 replicates)
   
-  # Compute the sums of every replicate
+  #Compute the sums of every replicate
  sums = c(sum(rnase_zeros[, i]), sum(rnase_zeros[, i + 1]), sum(rnase_zeros[, i + 2]))
   
-  # Compute the mean value of the two closest sums
+  #Determine sum closest to mean of sums 
   diffs = abs(sums - mean(sums))
-  mean_sum = mean(sums[which.min(diffs)])
+  sum_least_difference = sums[which.min(diffs)]
   
-  # Compute the normalization factors
-  norm_factor = mean_sum / sums
+  #Compute the normalization factors
+  norm_factor = sum_least_difference / sums
   
-  # Multiply the normalization factors with their corresponding replicates
+  #Multiply the normalization factors with their corresponding replicates
   rnase_zeros[, i] <- rnase_zeros[, i] * norm_factor[1]
   rnase_zeros[, i + 1] <- rnase_zeros[, i + 1] * norm_factor[2]
   rnase_zeros[, i + 2] <- rnase_zeros[, i + 2] * norm_factor[3]
@@ -94,8 +94,8 @@ for (i in seq(1, 73, by = 3)) {
 ```
 
 ```{r}
-# Scaling 
-#reseparate the dataframes to create six data frame,each containing only one replicate 
+#Scaling 
+#separate the data frames once again, to create six data frames, each containing only one replicate 
 #control replicates
 ctrl_norm1 = ctrl_zeros[seq(1, ncol(ctrl_zeros), by = 3)] 
 ctrl_norm2 = ctrl_zeros[seq(2, ncol(ctrl_zeros), by = 3)]
@@ -106,15 +106,16 @@ rnase_norm1 = rnase_zeros[seq(1, ncol(rnase_zeros), by = 3)]
 rnase_norm2 = rnase_zeros[seq(2, ncol(rnase_zeros), by = 3)]
 rnase_norm3 = rnase_zeros[seq(3, ncol(rnase_zeros), by = 3)]
 
-#sum of cols divided by 100 to create a quotient to scale
+#sum of columns divided by 100 to create a quotient to scale
 
+#idea:
 #QX = sum(rnase_norm1[1, ])/100
 #rnase_norm1[1,1] = rnase_norm1[1,1]/QX
 
 #control
-for (i in 1:nrow(ctrl_norm1)) { 
-  QX = sum(ctrl_norm1[i, ])/100
-  ctrl_norm1[i, ] = ctrl_norm1[i, ]/QX
+for (i in 1:nrow(ctrl_norm1)) { #for loop iterates through all rows 
+  QX = sum(ctrl_norm1[i, ])/100 #creating quotient by dividing the sum of all fractions of one protein by 100 
+  ctrl_norm1[i, ] = ctrl_norm1[i, ]/QX #dividing each fraction of one protein by this quotient
 }
 
 for (i in 1:nrow(ctrl_norm2)) { 
@@ -153,14 +154,14 @@ for (i in 1:nrow(rnase_norm3)) {
 #border values do not get replaced
 
 
-replace_mean = function(x){ #create a funtion to apply on the data frame, this function iterates through values 2-24 and replaces every value with the mean value of three values 
+replace_mean = function(x){ #create a function to apply on the data frame, this function iterates through values 2-24 and replaces every value with the mean value of three values (i - 1, i, i + 1)
   for (i in 2:24){
   x[i] = mean(x[(i-1):(i+1)]) 
   }
   return(x)
 }
   
-ctrl_smooth1 = apply(ctrl_norm1, 1, replace_mean) #here function created above is apllied, using apply, function iterates through each row, creating a new data frame ctrl_smooth1
+ctrl_smooth1 = apply(ctrl_norm1, 1, replace_mean) #here function created above is applied, using apply, function iterates through each row, creating a new data frame ctrl_smooth1
 ctrl_smooth2 = apply(ctrl_norm2, 1, replace_mean)
 ctrl_smooth3 = apply(ctrl_norm3, 1, replace_mean)
 
@@ -169,7 +170,7 @@ rnase_smooth2 = apply(rnase_norm2, 1, replace_mean)
 rnase_smooth3 = apply(rnase_norm3, 1, replace_mean)
 
 
-ctrl_smooth1 = t(ctrl_smooth1) #data frames are transposed to create original formation of the dataframes (not necessary, but better for our understanding)
+ctrl_smooth1 = t(ctrl_smooth1) #data frames are transposed to create original formation of the data frames (not necessary, but better for our understanding)
 ctrl_smooth2 = t(ctrl_smooth2)
 ctrl_smooth3 = t(ctrl_smooth3)
 
@@ -185,7 +186,7 @@ rnase_smooth3 = t(rnase_smooth3)
 #empty vector for correlation coefficients
 correlations_p12_rnase = vector()
 
-#loop to compare every row with one another
+#loop to compare every row with one another of these two data frames
 for (p in 1:nrow(rnase_smooth1)) {
   row_smooth1 = rnase_smooth1[p, ]
   row_smooth2 = rnase_smooth2[p, ]
@@ -268,7 +269,7 @@ for (p in 1:nrow(ctrl_smooth3)) {
 Sum_delete_p = sum(correlations_p12_rnase < 0.8 | correlations_p23_rnase < 0.8 | correlations_p31_rnase < 0.8 | correlations_p12_ctrl < 0.8 | correlations_p23_ctrl < 0.8 | correlations_p31_ctrl < 0.8 )
 Sum_delete_p
 
-#all values which are under 0.8 
+#all proteins with values which are under 0.8 
 delete_correlation = which(correlations_p12_rnase < 0.8 | correlations_p23_rnase < 0.8 | correlations_p31_rnase < 0.8 | correlations_p12_ctrl < 0.8 | correlations_p23_ctrl < 0.8 | correlations_p31_ctrl < 0.8)
 delete_correlation
 
@@ -291,15 +292,14 @@ ctrl_bind <- cbind(ctrl_smooth1, ctrl_smooth2, ctrl_smooth3)
 
 ctrl_mean <- list() #create empty list for the mean values
 
-#using a for loop to iterate through the data fraem and compute a mean value out of the three replicates of each fraction
+#using a for loop to iterate through the data frame and compute a mean value out of the three replicates of each fraction
 for (i in 1:25) {
-  replicates_ctrl = seq(i, length.out = 3, by = 25) #choose accrording values of each fraction out of each rep 
+  replicates_ctrl = seq(i, length.out = 3, by = 25) #choose according values of each fraction out of each rep 
   mean_val1 = rowMeans(ctrl_bind[, replicates_ctrl]) #compute the mean value out of the three values
   ctrl_mean[[i]] = as.data.frame(mean_val1) #append the mean value to the empty list created above
 }
 
-# Verbinde alle mittleren Werte aus der Liste zu einem Datenrahmen
-ctrl_mean = do.call(cbind, ctrl_mean) # combine all mean values out of the list into a dataframe 
+ctrl_mean = do.call(cbind, ctrl_mean) # combine all mean values out of the list into a data frame 
 
 #RNase
 
@@ -307,22 +307,21 @@ rnase_bind <- cbind(rnase_smooth1, rnase_smooth2, rnase_smooth3)
 
 rnase_mean <- list() #create empty list for the mean values
 
-#using a for loop to iterate through the data fraem and compute a mean value out of the three replicates of each fraction
+#using a for loop to iterate through the data frame and compute a mean value out of the three replicates of each fraction
 for (i in 1:25) {
-  replicates_rnase = seq(i, length.out = 3, by = 25) #choose accrording values of each fraction out of each rep 
+  replicates_rnase = seq(i, length.out = 3, by = 25) #choose according values of each fraction out of each rep 
   mean_val2 = rowMeans(rnase_bind[, replicates_rnase]) #compute the mean value out of the three values
   rnase_mean[[i]] = as.data.frame(mean_val2) #append the mean value to the empty list created above
 }
 
-# Verbinde alle mittleren Werte aus der Liste zu einem Datenrahmen
-rnase_mean = do.call(cbind, rnase_mean) # combine all mean values out of the list into a dataframe 
+rnase_mean = do.call(cbind, rnase_mean) # combine all mean values out of the list into a data frame 
 ```
 
 ```{r}
 #find global peaks
-global_peak_finder = function(x) which(x == max(x)) #create a function which will find the max. value
-global_peak_ctrl_mean = apply(ctrl_mean, 1, global_peak_finder) # apply the global_peak_finder function onto our mean data frames, vector will contain fractions of the global peaks 
-global_peak_ctrl_mean #control if code worked as aspected 
+global_peak_finder = function(x) which(x == max(x)) #create a function which will find the max value
+global_peak_ctrl_mean = apply(ctrl_mean, 1, global_peak_finder) #apply the global_peak_finder function on our mean data frames, vector will contain fractions of the global peaks 
+global_peak_ctrl_mean #control if code worked as expected 
 global_peak_rnase_mean = apply(rnase_mean, 1, global_peak_finder) #apply on RNase mean data frame 
 as.data.frame(global_peak_ctrl1) 
 ```
@@ -333,7 +332,7 @@ local_peak_finder = function(x) { #create a function
   peaks <- c() #empty vector which will store all found peaks 
  
   for (i in 3:(length(x) - 2)) {
-    if (x[i] > x[i+1] & x[i] > x[i-1] & x[i] > x[i+2] & x[i] > x[i-2]) #iterate through the values and looks for values which are bigger than 2 values before and 2 values after the value itself 
+    if (x[i] > x[i+1] & x[i] > x[i-1] & x[i] > x[i+2] & x[i] > x[i-2]) #iterates through the values and looks for values, which are bigger than the 2 values before and the 2 values after the value of interest itself 
       peaks = c(peaks, i)
   }
  
@@ -358,9 +357,9 @@ rnase_mean_lp = apply(as.data.frame(rnase_mean), 1, local_peak_finder) #apply cr
 ```{r}
 #identifying shifts 
 #first criteria for a shift: differences between the global peaks 
-#a shift only occured if the difference between the global peaks of control and RNase is larger than 1 oder smaller than -1 (threshold)
-#therfore no shift occured if the differnece between the gloabl peaks is 0, 1 or -1 
-#percipitated proteins, are proteins accumulated in the last fraction (25), in control and RNase 
+#a shift only occurred if the difference between the global peaks of control and RNase is larger than 1 or smaller than -1 (threshold)
+#therefore no shift occurred if the difference between the global peaks is 0, 1 or -1 
+#precipitated proteins, are proteins accumulated in the last fraction (25), in control and RNase 
 ctrl_gp = c(global_peak_ctrl_mean)
 rnase_gp = c(global_peak_rnase_mean)
 
@@ -369,36 +368,36 @@ differences_peak = c(ctrl_gp - rnase_gp) #calculate the differences between the 
 left_shift = which(differences_peak > 1) #identifying left shifts 
 right_shift = which(differences_peak < -1) #identifying right shifts 
 no_shift = which(differences_peak == 0 | differences_peak == 1 | differences_peak == -1) # identifying no shifts
-precipitated = which(ctrl_gp == 25 & rnase_gp == 25) #identifying percipitated shifts 
+precipitated = which(ctrl_gp == 25 & rnase_gp == 25) #identifying precipitated shifts 
 ```
 
 ```{r}
 #t-test
 #second criteria for significant RNA dependent protein: the amount of the protein significantly differs in the fraction of a global peak between RNase and control group 
 
-global_maxima = cbind(ctrl_gp, rnase_gp)
+global_maxima = cbind(ctrl_gp, rnase_gp) #create a singular data frame containing the global maxima of control and RNase
 
 
-#ctrl dataframes 
+#ctrl data frames 
 ctrl_1 = ctrl_smooth1 
 ctrl_2 = ctrl_smooth2 
 ctrl_3 = ctrl_smooth3 
 
-#rnase dataframes 
+#rnase data frames 
 rnase_1 = rnase_smooth1
 rnase_2 = rnase_smooth2
 rnase_3 = rnase_smooth3
 
 #ctrlpeaks
 
-#here the amount of proteins in the fractions of the global peaks of control group is stored in empty vectors for for each replicate 
+#here the amount of proteins in the fractions of the global peaks of control group is stored in empty vectors for each replicate 
 
 #create a vector with the protein amount of RNase in the fraction of the control global peak 
 ap_r1 = c()
 
 for (i in 1:nrow(rnase_1)){ #iterates through rnase_1 
-  fraction=ctrl_gp[i] #each index of the gloabl peaks of each protein is stored in the vector fraction
-  amountr1 = rnase_1[i, fraction] #the amount of protein for this fraction is safed as amountr1
+  fraction=ctrl_gp[i] #each index of the global peaks of each protein is stored in the vector fraction
+  amountr1 = rnase_1[i, fraction] #the amount of protein for this fraction is saved as amountr1
   ap_r1 = c(ap_r1, amountr1) #the amount of protein in this fraction is put into the vector ap_r1
 }
 
@@ -448,15 +447,15 @@ for (i in 1:nrow(ctrl_3)){
 
 amount_ctrl = cbind(ap_c1, ap_c2, ap_c3) #data frames with the amount of protein in the global peaks fraction of the control replicates 
 amount_rnase = cbind(ap_r1, ap_r2, ap_r3) #data frames with the amount of protein in the global peaks fraction of the RNase replicates
-p_values_ctrl = c() #empty vector is created to store the p values 
+p_values_ctrl = c() #empty vector is created to store the p-values 
  
-#appling ttest: first the loops checks for identical values in the farctions, if so a 1 is added to the p_values_ctrl vector
+#appling t-test: first the loops checks for identical values in the fractions, if so a 1 is added to the p_values_ctrl vector
 for (i in 1:4588){
 if (ap_r1[i] == ap_c1[i] | ap_r1[i] == ap_c2[i] | ap_r1[i] == ap_c3[i] | ap_r2[i] == ap_c1[i] | ap_r2[i] == ap_c2[i] | ap_r2[i] == ap_c3[i] | ap_r3[i] == ap_c1[i] | ap_r3[i] == ap_c2[i] | ap_r3[i] == ap_c3[i]){
   p_values_ctrl = append(p_values_ctrl, 1)
 }
   else {
-  ttest = t.test(amount_rnase[i,], amount_ctrl[i,], alternative = "two.sided") #application of the ttest to the protein amount in the same fraction of different replicates 
+  ttest = t.test(amount_rnase[i,], amount_ctrl[i,], alternative = "two.sided") #application of the t-test to the protein amount in the same fraction of different replicates 
   p_values_ctrl = append(p_values_ctrl, ttest$p.value)  
   }
 }
@@ -466,9 +465,9 @@ p_val_adj = p.adjust(p_values_ctrl, method = "BH") #false discovery rate is adju
 
 length(which(p_values_ctrl<0.05)) #2644 significant proteins identified, without adjustment 
 length(which(p_values_ctrl>0.05)) #1944 non significant proteins identified, without adjustment 
-length(which(p_values_ctrl==1)) #77 proteins with the same amount of protein in at least one replicate control and RNase 
+length(which(p_values_ctrl==1)) #77 proteins with the same amount of protein in at least one replicate in control and RNase 
 
-p_values_ctrl[4588] #0.696, used as a control protein to check the liability of the p values 
+p_values_ctrl[4588] #0.696, used as a control protein to check the reliability of the p-values 
 
 sig_ctrl = which(p_val_adj<0.05) #significant proteins stored in a vector 
 length(which(p_val_adj<0.05)) #2214 significant proteins after adjustment 
@@ -480,7 +479,10 @@ p_val_adj[4588] #0.749 after adjustment
 #################################################
 
 #rnase peaks
-#the same steps were apllied on the fractions of the RNase gloabl peaks 
+#the same steps were applied on the fractions of the RNase global peaks 
+
+#here the amount of proteins in the fractions of the global peaks of rnase group is stored in empty vectors for each replicate 
+#create a vector with the protein amount of RNase in the fraction of the rnase global peak 
 ap_r1_rev = c()
 
 for (i in 1:nrow(rnase_1)){
@@ -505,7 +507,7 @@ for (i in 1:nrow(rnase_3)){
   ap_r3_rev = c(ap_r3_rev, amountr3)
 }
 
-
+#create a vector with the protein amount of ctrl in the fraction of the rnase global peak 
 ap_c1_rev = c()
 
 for (i in 1:nrow(ctrl_1)){
@@ -559,7 +561,7 @@ length(which(p_val_adj_rev<0.05)) #2229 significant proteins after adjustment
 length(which(p_val_adj_rev>0.05)) #2359 significant proteins after adjustment
 length(which(p_val_adj_rev==1)) #91 after adjustment
 
-p_val_adj_rev[4588] #control proteins to check the liability of the p-values
+p_val_adj_rev[4588] #control proteins to check the reliability of the p-values
 
 
 ########################################
@@ -573,15 +575,15 @@ length(sig_proteins_ttest) #1987 significant Proteins
 
 
 ```{r}
-#kmeans 
-#clustering the positions of the gloabl peaks of thr control and RNase group 
+#k-means 
+#clustering the positions of the global peaks of the control and RNase group 
 ctrl_cluster = cbind(ctrl_gp, rnase_gp)
 
-#trying different numbers of clusters to chosse the optimal 
+#trying different numbers of clusters to choose the optimal amount
 k1 <- 1
 kmeans_result1 = kmeans(ctrl_cluster, centers = k1)
-# Sum of  within Square distance
-kmeans1_wss = kmeans_result1$tot.withinss #keep the within square distance in a variable for later use on th elbow method 
+#Sum of within square distance
+kmeans1_wss = kmeans_result1$tot.withinss #keep the within square distance in a variable for later use on the elbow method 
 kmeans1_wss
 
 k2 <- 2
@@ -616,7 +618,7 @@ kmeans6_wss
 
 k7 <- 7
 kmeans_result7 = kmeans(ctrl_cluster, centers = k7)
-# Sum of within Square distance
+# Sum of within square distance
 kmeans7_wss = kmeans_result7$tot.withinss
 kmeans7_wss
 
@@ -624,7 +626,7 @@ elbow = c(kmeans1_wss, kmeans2_wss, kmeans3_wss, kmeans4_wss, kmeans5_wss, kmean
 
 clusters = c(1,2,3,4,5,6,7)
 
-plot(clusters, elbow, type = "b", pch = 20, main = "Elbow method", xlab = "Number of clusters k", ylab = "total Within Sum of Square", col = "blue") #looking at this plot we identifyed 4 being the optimal number of clusters 
+plot(clusters, elbow, type = "b", pch = 20, main = "Elbow method", xlab = "Number of clusters k", ylab = "total Within Sum of Square", col = "blue") #looking at this plot we identified 4 being the optimal number of clusters 
 
 ```
 
@@ -637,7 +639,7 @@ mean_data = cbind(ctrl_mean, rnase_mean)
 df_lm = data.frame(row.names =  proteinnames)
 
  
-correlation_function = function(x){cor(x[1:25], x[26:50])} # creating a function which will compute the correlation between control and RNase of each protein 
+correlation_function = function(x){cor(x[1:25], x[26:50])} #creating a function which will compute the correlation between control and RNase of each protein 
 
 corr_vector = apply(mean_data, 1, correlation_function) #applying the function on all proteins in the data frame 
 
@@ -645,13 +647,13 @@ df_lm$cor = c(corr_vector) #correlation values are added to the data frame
 
 df_lm$shift = c(abs(differences_peak)) #absolute amount of fraction between the global peaks are added -> no negative values 
 
-#create two data frames one with 90% of the rows of df_lm and one with the rest 10% of rows 
+#create two data frames one with 90% of the rows of df_lm and one with the remaining 10% of rows 
 
 n = nrow(df_lm) #number of row in df_lm data frame
 n_new = round(0.9 * n)  #90% of number of rows 
 
 train_df = df_lm[1:n_new, ] #create new data frame with 90% of the rows -> train the model 
-predict_df = df_lm[4130:4588, ] #create new data farme with the rest 10% of the rows -> test how well our model can predict 
+predict_df = df_lm[4130:4588, ] #create new data frame with the remaining 10% of the rows -> test how well our model can predict 
 
 linear_reg = lm(shift ~ cor, train_df) #linear model is created 
 summary(linear_reg) #control all available values 
@@ -706,7 +708,7 @@ ggplot(predict_compare, aes(predict_df.shift, predict_model)) +
 ```{r}
 #compare to other data sets 
 
-#read RBP2Go dataset 
+#read RBP2Go data set 
 RBP2GO = read.csv("~/Downloads/RBP2GO_Human_database_RBPs.csv", header=TRUE, sep = ";")
 View(RBP2GO)
 
@@ -714,14 +716,14 @@ View(RBP2GO)
 
 protein_names = rownames(ctrl_mean)
 
-#create vector with sigificant proteins 
+#create vector with significant proteins 
 
 sig_proteins_shift = c(which(differences_peak > 1), which(differences_peak < -1)) #vector containing proteins with a significant shift 
 sig_proteins_shift_data = as.data.frame((sig_proteins_shift)) #creating a data frame out of the vector 
 
 protein_names_sp_shift = rownames(sig_proteins_shift_data) #create a vector containing the proteins, which are significant due to the first criteria 
 
-#protein names of the significant proteins due to the second criteria (ttest)
+#protein names of the significant proteins due to the second criteria (t-test)
 
 protein_names_sp_ttest = subset(proteinnames, subset=seq_along(proteinnames) %in% sig_proteins_ttest) #creating a vector containing all the protein names of the significant proteins 
 
@@ -737,7 +739,6 @@ rn_RBP2GO = RBP2GO[,1]
 #find proteins which are in both data sets 
 shared_protein = intersect(protein_names, rn_RBP2GO)
 length(shared_protein) #3425 proteins are found in both data sets 
-#proteine die wir als RBP dependent definiert haben 
 #proteins which we defined as RNA dependent 
 true_pos = intersect(shared_protein, sig_proteins)
 length(true_pos) #1093 true positive proteins 
@@ -745,7 +746,7 @@ length(true_pos) #1093 true positive proteins
 #tp = length(true_pos)
 #sig.p = length(sig_proteins)
 #false_pos = sig.p - tp
-#false_pos #number of false poitive proteins 
+#false_pos #number of false positive proteins 
 false_positive = sig_proteins[!(sig_proteins %in% true_pos)]
 length(false_positive) #70 false positive proteins
 
@@ -762,7 +763,7 @@ length(false_neg) #2332 false negative proteins
 
 # visualize scaling via barplot 
 
-#summen vorher 
+#sums before 
 sum_ctrl_bsca1 = sum(ctrl1[1,])
 sum_ctrl_bsca2 = sum(ctrl2[1,])
 sum_ctrl_bsca3 = sum(ctrl3[1,])
@@ -771,7 +772,7 @@ sum_rnase_bsca1 = sum(rnase1[1,])
 sum_rnase_bsca2 = sum(rnase2[1,])
 sum_rnase_bsca3 = sum(rnase3[1,])
 
-#summen nach dem scaling 
+#sums after scaling 
 sum_ctrl_asca1 = sum(ctrl_norm1[1,])
 sum_ctrl_asca2 = sum(ctrl_norm2[1,])
 sum_ctrl_asca3 = sum(ctrl_norm3[1,])
@@ -784,10 +785,11 @@ sum_rnase_asca3 = sum(rnase_norm3[1,])
 plot_sums_bsca = c(sum_ctrl_bsca1, sum_ctrl_bsca2, sum_ctrl_bsca3, sum_rnase_bsca1, sum_rnase_bsca2, sum_rnase_bsca3)
 plot_sums_asca = c(sum_ctrl_asca1, sum_ctrl_asca2, sum_ctrl_asca3, sum_rnase_asca1, sum_rnase_asca2, sum_rnase_asca3)
 
-bar_names_norm = c("cnorm1[1,]", "cnorm2[1,]l", "cnorm3[1,]", "rnorm1[1,]", "rnorm2[1,]", "rnorm3[1,]")
-bar_names = c("ctrl1[1,]", "ctrl2[1,]l", "ctrl3[1,]", "rnase1[1,]", "rnase2[1,]", "rnase3[1,]")
-barplot(plot_sums_bsca, names.arg = bar_names, ylab = "sum protein amount AHNK_HUMAN", axisnames = TRUE)
-barplot(plot_sums_asca, names.arg = bar_names_norm, ylab = "sum protein amount AHNK_HUMAN", axisnames = TRUE)
+col = c("steelblue1", "steelblue1", "steelblue1", "light blue", "light blue", "light blue")
+bar_names_norm = c("cnorm1", "cnorm2", "cnorm3", "rnorm1", "rnorm2", "rnorm3")
+bar_names = c("ctrl1", "ctrl2", "ctrl3", "rnase1", "rnase2", "rnase3")
+barplot(plot_sums_bsca, names.arg = bar_names, col = col, ylab = "sum protein amount AHNK_HUMAN", main = "sum of protein before scaling", axisnames = TRUE)
+barplot(plot_sums_asca, names.arg = bar_names_norm, col = col, ylab = "sum protein amount AHNK_HUMAN",  main = "sum of protein after scaling",  axisnames = TRUE)
 
 #######################################
 
@@ -800,24 +802,24 @@ plot(as.matrix(ctrl_norm1)[1, ], type="l", col="blue", xlab ="fraction", ylab ="
 
 #visualize shifts 
 #left shift 
-plot(as.matrix(rnase_mean)[1, ], type = "l", col = "blue", xlab = "fraction", ylab = "protein amount", main = "AHNK_HUMAN") 
-lines(as.matrix(ctrl_mean)[1, ], type = "l", col = "red")
-legend("topright", legend = c("RNase", "Control"), col = c("blue", "red"), lwd = 2)
+plot(as.matrix(rnase_mean)[1, ], type = "l", col = "steelblue1", xlab = "fraction", ylab = "protein amount", main = "AHNK_HUMAN") 
+lines(as.matrix(ctrl_mean)[1, ], type = "l", col = "palevioletred1")
+legend("topright", legend = c("RNase", "Control"), col = c("steelblue1", "palevioletred1"), lwd = 2)
 
 #right shift
-plot(as.matrix(rnase_mean)[334, ], type = "l", col = "blue", xlab = "fraction", ylab = "protein amount", main = "ANXA5_HUMAN")
-lines(as.matrix(ctrl_mean)[334, ], type = "l", col = "red")
-legend("topright", legend = c("RNase", "Control"), col = c("blue", "red"), lwd = 2)
+plot(as.matrix(rnase_mean)[334, ], type = "l", col = "steelblue1", xlab = "fraction", ylab = "protein amount", main = "ANXA5_HUMAN")
+lines(as.matrix(ctrl_mean)[334, ], type = "l", col = "palevioletred1")
+legend("topright", legend = c("RNase", "Control"), col = c("steelblue1", "palevioletred1"), lwd = 2)
 
 #no shift 
-plot(as.matrix(rnase_mean)[4588, ], type = "l", col = "blue", xlab = "fraction", ylab = "protein amount", main = "ZPR1_HUMAN")
-lines(as.matrix(ctrl_mean)[4588, ], type = "l", col = "red")
-legend("topright", legend = c("RNase", "Control"), col = c("blue", "red"), lwd = 2)
+plot(as.matrix(rnase_mean)[4588, ], type = "l", col = "steelblue1", xlab = "fraction", ylab = "protein amount", main = "ZPR1_HUMAN")
+lines(as.matrix(ctrl_mean)[4588, ], type = "l", col = "palevioletred1")
+legend("topright", legend = c("RNase", "Control"), col = c("steelblue1", "palevioletred1"), lwd = 2)
 
 #precipitated 
-plot(as.matrix(rnase_mean)[1268, ], type = "l", col = "blue", xlab = "fraction", ylab = "protein amount", main = "GYS1_HUMAN")
-lines(as.matrix(ctrl_mean)[1268, ], type = "l", col = "red")
-legend("topleft", legend = c("RNase", "Control"), col = c("blue", "red"), lwd = 2)
+plot(as.matrix(rnase_mean)[1268, ], type = "l", col = "steelblue1", xlab = "fraction", ylab = "protein amount", main = "GYS1_HUMAN")
+lines(as.matrix(ctrl_mean)[1268, ], type = "l", col = "palevioletred1")
+legend("topleft", legend = c("RNase", "Control"), col = c("steelblue1", "palevioletred1"), lwd = 2)
 
 ##########################################
 
