@@ -323,7 +323,6 @@ global_peak_finder = function(x) which(x == max(x)) #create a function which wil
 global_peak_ctrl_mean = apply(ctrl_mean, 1, global_peak_finder) #apply the global_peak_finder function on our mean data frames, vector will contain fractions of the global peaks 
 global_peak_ctrl_mean #control if code worked as expected 
 global_peak_rnase_mean = apply(rnase_mean, 1, global_peak_finder) #apply on RNase mean data frame 
-as.data.frame(global_peak_ctrl1) 
 ```
 
 ```{r}
@@ -635,8 +634,11 @@ plot(clusters, elbow, type = "b", pch = 20, main = "Elbow method", xlab = "Numbe
 #combined mean data frame 
 mean_data = cbind(ctrl_mean, rnase_mean)
 
+#create a vector containing all protein names 
+protein_names = rownames(ctrl_mean)
+
 #create data frame containing correlations between control and RNase group and the absolute amount of fractions between control and RNase peak 
-df_lm = data.frame(row.names =  proteinnames)
+df_lm = data.frame(row.names =  protein_names)
 
  
 correlation_function = function(x){cor(x[1:25], x[26:50])} #creating a function which will compute the correlation between control and RNase of each protein 
